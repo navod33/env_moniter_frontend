@@ -141,7 +141,6 @@ const Dashboard = () => {
   const [tempHumidityChartData, setTempHumidityChartData] = useState(temperatureHumidityData);
   const [sensorData, setSensorData] = useState([]); 
 
-console.log("sensorData", sensorData)
 
   const handleOpenDialog = () => {
     setOpenDialog(true);
@@ -160,6 +159,51 @@ console.log("sensorData", sensorData)
   }, []);
 
 
+  useEffect(() => {
+    const fetchThresholds = async () => {
+      try {
+        const response = await fetch('http://localhost:4000/api/threshold');
+        if (response.ok) {
+          const data = await response.json();
+
+          setTemperature(data.data.temperature || ''); 
+          setHumidity(data.data.humidity || ''); 
+
+        } else {
+          console.error('Failed to fetch thresholds');
+        }
+      } catch (error) {
+        console.error('Error fetching thresholds:', error);
+      }
+    };
+  
+    fetchThresholds();
+  }, []);
+
+
+  useEffect(() => {
+    const fetchPhone = async () => {
+      try {
+        const response = await fetch('http://localhost:4000/api/phone');
+        if (response.ok) {
+          const data = await response.json();
+          console.log(data, "data")
+          setPhoneNumber(data.data.phone || ''); 
+
+        } else {
+          console.error('Failed to fetch phone');
+        }
+      } catch (error) {
+        console.error('Error fetching phone:', error);
+      }
+    };
+  
+    fetchPhone();
+  }, []);
+
+
+  
+
   const handleSave = async () => {
     const payload = { temperature, humidity };
   
@@ -173,12 +217,12 @@ console.log("sensorData", sensorData)
       if (response.ok) {
         const data = await response.json();
         console.log('Thresholds saved:', data);
-        alert('Thresholds updated successfully!');
+        // alert('Thresholds updated successfully!');
         handleCloseDialog();
       } else {
         const errorData = await response.json();
         console.error('Error saving thresholds:', errorData);
-        alert(errorData.message || 'Failed to update thresholds.');
+        // alert(errorData.message || 'Failed to update thresholds.');
       }
     } catch (error) {
       console.error('Network error:', error);
@@ -199,12 +243,12 @@ console.log("sensorData", sensorData)
       if (response.ok) {
         const data = await response.json();
         console.log('phone number saved:', data);
-        alert('phone number updated successfully!');
+        // alert('phone number updated successfully!');
         handleCloseDialog();
       } else {
         const errorData = await response.json();
         console.error('Error saving phone number:', errorData);
-        alert(errorData.message || 'Failed to update phone number.');
+        // alert(errorData.message || 'Failed to update phone number.');
       }
     } catch (error) {
       console.error('Network error:', error);
@@ -275,7 +319,7 @@ console.log("sensorData", sensorData)
         const response = await fetch('http://localhost:4000/api/sensor');
         if (response.ok) {
           const data = await response.json();
-          setSensorData(data.data || []); // Set the fetched sensor data to state
+          setSensorData(data.data || []); 
         } else {
           console.error('Failed to fetch sensor data');
         }
@@ -340,23 +384,23 @@ console.log("sensorData", sensorData)
           >
       <TableContainer
         component={Paper}
-        elevation={3} // Adds shadow to the paper
+        elevation={3} 
         sx={{
           mt: 4,
           width: 800,
-          borderRadius: 3, // Rounds corners of the table
-          overflow: "hidden", // Ensures no content overflows
+          borderRadius: 3, 
+          overflow: "hidden",
         }}
       >
         <Typography
           variant="h6"
           sx={{
             p: 2,
-            bgcolor: "#1976d2", // MUI primary blue
-            color: "white", // White text
-            textAlign: "center", // Centers the title
-            fontWeight: "bold", // Bold font
-            textTransform: "uppercase", // Makes the text uppercase
+            bgcolor: "#1976d2",
+            color: "white", 
+            textAlign: "center", 
+            fontWeight: "bold", 
+            textTransform: "uppercase", 
           }}
         >
           Sensor Data
@@ -365,7 +409,7 @@ console.log("sensorData", sensorData)
       <TableHead>
         <TableRow
           sx={{
-            bgcolor: "#e3f2fd", // Light blue background
+            bgcolor: "#e3f2fd", 
           }}
         >
           <TableCell><strong>Date</strong></TableCell>
@@ -383,7 +427,7 @@ console.log("sensorData", sensorData)
               key={item.id}
               sx={{
                 "&:nth-of-type(odd)": {
-                  bgcolor: "#f9f9f9", // Alternate row background color
+                  bgcolor: "#f9f9f9", 
                 },
                 "&:nth-of-type(even)": {
                   bgcolor: "#ffffff",
@@ -410,12 +454,10 @@ console.log("sensorData", sensorData)
             </TableRow>
           );
         })}
-      </TableBody>
-    </Table>
-  </TableContainer>
-</Box>
-
-
+        </TableBody>
+        </Table>
+        </TableContainer>
+      </Box>
 
 
       {/* Update Thresholds Dialog */}
