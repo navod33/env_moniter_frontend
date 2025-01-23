@@ -374,7 +374,7 @@ const Dashboard = () => {
       <Grid container spacing={3}>
         {/* Humidity Chart */}
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 400, backgroundColor: '#FCF7F8' }}>
+          <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 400 }}>
             <Typography variant="h6" sx={{ mb: 2 }}>
               Current Humidity : {liveData.humidity} %
             </Typography>
@@ -384,7 +384,7 @@ const Dashboard = () => {
 
         {/* Temperature Chart */}
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 400, backgroundColor: '#FCF7F8' }}>
+          <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 400}}>
             <Typography variant="h6" sx={{ mb: 2 }}>
               Current Temperature : {liveData.temperature} °C
             </Typography>
@@ -394,7 +394,7 @@ const Dashboard = () => {
 
         {/* Temperature vs Humidity */}
         <Grid item xs={12}>
-          <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', backgroundColor: '#FCF7F8' }}>
+          <Paper sx={{ p: 10, display: 'flex', flexDirection: 'column', height: 500, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Typography variant="h6" sx={{ mb: 2 }}>
               Temperature vs Humidity
             </Typography>
@@ -404,17 +404,16 @@ const Dashboard = () => {
 
         </Grid>
         <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="100vh" 
-        bgcolor="#f5f5f5" 
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          minHeight="100vh" 
           >
       <TableContainer
         component={Paper}
         elevation={3} 
         sx={{
-          mt: 4,
+          mt: 15,
           width: 800,
           borderRadius: 3, 
           overflow: "hidden",
