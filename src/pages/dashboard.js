@@ -17,6 +17,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
 } from '@mui/material';
 import { Line } from 'react-chartjs-2';
 import {
@@ -140,6 +141,26 @@ const Dashboard = () => {
   const [temperatureChartData, setTemperatureChartData] = useState(temperatureData);
   const [tempHumidityChartData, setTempHumidityChartData] = useState(temperatureHumidityData);
   const [sensorData, setSensorData] = useState([]); 
+  const [page, setPage] = useState(0); 
+  const [rowsPerPage, setRowsPerPage] = useState(20); 
+
+
+    // Handle page change
+    const handleChangePage = (event, newPage) => {
+      setPage(newPage);
+    };
+  
+    // Handle rows per page change
+    const handleChangeRowsPerPage = (event) => {
+      setRowsPerPage(parseInt(event.target.value, 10));
+      setPage(0); // Reset to first page
+    };
+  
+    // Paginated data
+    const paginatedData = sensorData.slice(
+      page * rowsPerPage,
+      page * rowsPerPage + rowsPerPage
+    );
 
 
   const handleOpenDialog = () => {
@@ -255,41 +276,48 @@ const Dashboard = () => {
     }
   };
 
-
-  const MAX_DATA_POINTS = 10;
+  const MAX_DATA_POINTS = 10; // Keep only the last 10 data points
+  const [lastUpdateTime, setLastUpdateTime] = useState(null); // Track the last chart update time
 
   useEffect(() => {
     if (liveData && liveData.temperature && liveData.humidity) {
-      setHumidityChartData((prevData) => ({
-        ...prevData,
-        labels: [...prevData.labels, new Date().toLocaleTimeString()].slice(-MAX_DATA_POINTS),
-        datasets: prevData.datasets.map((dataset) => ({
-          ...dataset,
-          data: [...dataset.data, liveData.humidity].slice(-MAX_DATA_POINTS),
-        })),
-      }));
+      const now = new Date();
 
-      setTemperatureChartData((prevData) => ({
-        ...prevData,
-        labels: [...prevData.labels, new Date().toLocaleTimeString()].slice(-MAX_DATA_POINTS),
-        datasets: prevData.datasets.map((dataset) => ({
-          ...dataset,
-          data: [...dataset.data, liveData.temperature].slice(-MAX_DATA_POINTS),
-        })),
-      }));
+      // Check if 1 minute has passed since the last update
+      if (!lastUpdateTime || now - lastUpdateTime >= 60000) {
+        setLastUpdateTime(now); // Update the last update time
 
-      setTempHumidityChartData((prevData) => ({
-        ...prevData,
-        labels: [...prevData.labels, new Date().toLocaleTimeString()].slice(-MAX_DATA_POINTS),
-        datasets: prevData.datasets.map((dataset, index) => ({
-          ...dataset,
-          data: index === 0
-            ? [...dataset.data, liveData.temperature].slice(-MAX_DATA_POINTS)
-            : [...dataset.data, liveData.humidity].slice(-MAX_DATA_POINTS),
-        })),
-      }));
+        setHumidityChartData((prevData) => ({
+          ...prevData,
+          labels: [...prevData.labels, now.toLocaleTimeString()].slice(-MAX_DATA_POINTS),
+          datasets: prevData.datasets.map((dataset) => ({
+            ...dataset,
+            data: [...dataset.data, liveData.humidity].slice(-MAX_DATA_POINTS),
+          })),
+        }));
+
+        setTemperatureChartData((prevData) => ({
+          ...prevData,
+          labels: [...prevData.labels, now.toLocaleTimeString()].slice(-MAX_DATA_POINTS),
+          datasets: prevData.datasets.map((dataset) => ({
+            ...dataset,
+            data: [...dataset.data, liveData.temperature].slice(-MAX_DATA_POINTS),
+          })),
+        }));
+
+        setTempHumidityChartData((prevData) => ({
+          ...prevData,
+          labels: [...prevData.labels, now.toLocaleTimeString()].slice(-MAX_DATA_POINTS),
+          datasets: prevData.datasets.map((dataset, index) => ({
+            ...dataset,
+            data: index === 0
+              ? [...dataset.data, liveData.temperature].slice(-MAX_DATA_POINTS)
+              : [...dataset.data, liveData.humidity].slice(-MAX_DATA_POINTS),
+          })),
+        }));
+      }
     }
-  }, [liveData]);
+  }, [liveData, lastUpdateTime]);
 
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -419,43 +447,52 @@ const Dashboard = () => {
           <TableCell><strong>Status</strong></TableCell>
         </TableRow>
       </TableHead>
-      <TableBody>
-        {sensorData?.map((item) => {
-          const date = new Date(item.createdAt);
-          return (
-            <TableRow
-              key={item.id}
-              sx={{
-                "&:nth-of-type(odd)": {
-                  bgcolor: "#f9f9f9", 
-                },
-                "&:nth-of-type(even)": {
-                  bgcolor: "#ffffff",
-                },
-              }}
-            >
-              <TableCell>{date.toLocaleDateString()}</TableCell>
-              <TableCell>{date.toLocaleTimeString()}</TableCell>
-              <TableCell>{item.temperature.toFixed(1)}</TableCell>
-              <TableCell>{item.humidity.toFixed(1)}</TableCell>
-              <TableCell
+             <TableBody>
+          {paginatedData.map((item) => {
+            const date = new Date(item.createdAt);
+            return (
+              <TableRow
+                key={item.id}
                 sx={{
-                  color:
-                    item.status === "NORMAL"
-                      ? "green"
-                      : item.status === "WARNING"
-                      ? "orange"
-                      : "red", // Color coding for status
-                  fontWeight: "bold", // Makes status stand out
+                  "&:nth-of-type(odd)": {
+                    bgcolor: "#f9f9f9",
+                  },
+                  "&:nth-of-type(even)": {
+                    bgcolor: "#ffffff",
+                  },
                 }}
               >
-                {item.status}
-              </TableCell>
-            </TableRow>
-          );
-        })}
+                <TableCell>{date.toLocaleDateString()}</TableCell>
+                <TableCell>{date.toLocaleTimeString()}</TableCell>
+                <TableCell>{item.temperature.toFixed(1)}</TableCell>
+                <TableCell>{item.humidity.toFixed(1)}</TableCell>
+                <TableCell
+                  sx={{
+                    color:
+                      item.status === "NORMAL"
+                        ? "green"
+                        : item.status === "WARNING"
+                        ? "orange"
+                        : "red",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {item.status}
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
         </Table>
+        <TablePagination
+        rowsPerPageOptions={[5, 10, 15]} // Options for rows per page
+        component="div"
+        count={sensorData.length} // Total number of rows
+        rowsPerPage={rowsPerPage} // Rows per page
+        page={page} // Current page
+        onPageChange={handleChangePage} // Page change handler
+        onRowsPerPageChange={handleChangeRowsPerPage} // Rows per page handler
+      />
         </TableContainer>
       </Box>
 
