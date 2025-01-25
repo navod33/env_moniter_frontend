@@ -162,6 +162,7 @@ const Dashboard = () => {
       page * rowsPerPage + rowsPerPage
     );
 
+  console.log('sensorData', sensorData)
 
   const handleOpenDialog = () => {
     setOpenDialog(true);
@@ -280,7 +281,7 @@ const Dashboard = () => {
   const [lastUpdateTime, setLastUpdateTime] = useState(null); // Track the last chart update time
 
   useEffect(() => {
-    if (liveData && liveData.temperature && liveData.humidity) {
+    if (sensorData && sensorData.temperature && sensorData.humidity) {
       const now = new Date();
 
       // Check if 1 minute has passed since the last update
@@ -292,7 +293,7 @@ const Dashboard = () => {
           labels: [...prevData.labels, now.toLocaleTimeString()].slice(-MAX_DATA_POINTS),
           datasets: prevData.datasets.map((dataset) => ({
             ...dataset,
-            data: [...dataset.data, liveData.humidity].slice(-MAX_DATA_POINTS),
+            data: [...dataset.data, sensorData.humidity].slice(-MAX_DATA_POINTS),
           })),
         }));
 
@@ -301,7 +302,7 @@ const Dashboard = () => {
           labels: [...prevData.labels, now.toLocaleTimeString()].slice(-MAX_DATA_POINTS),
           datasets: prevData.datasets.map((dataset) => ({
             ...dataset,
-            data: [...dataset.data, liveData.temperature].slice(-MAX_DATA_POINTS),
+            data: [...dataset.data, sensorData.temperature].slice(-MAX_DATA_POINTS),
           })),
         }));
 
@@ -311,13 +312,13 @@ const Dashboard = () => {
           datasets: prevData.datasets.map((dataset, index) => ({
             ...dataset,
             data: index === 0
-              ? [...dataset.data, liveData.temperature].slice(-MAX_DATA_POINTS)
-              : [...dataset.data, liveData.humidity].slice(-MAX_DATA_POINTS),
+              ? [...dataset.data, sensorData.temperature].slice(-MAX_DATA_POINTS)
+              : [...dataset.data, sensorData.humidity].slice(-MAX_DATA_POINTS),
           })),
         }));
       }
     }
-  }, [liveData, lastUpdateTime]);
+  }, [sensorData, lastUpdateTime]);
 
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -470,13 +471,18 @@ const Dashboard = () => {
                     color:
                       item.status === "NORMAL"
                         ? "green"
-                        : item.status === "WARNING"
+                        : item.status === "BOTH_EXCEED"
+                        ? "red"
+                        : item.status === "TEM_EXCEED" || item.status === "HUM_EXCEED"
                         ? "orange"
-                        : "red",
+                        : "black", // Default color as fallback
                     fontWeight: "bold",
                   }}
                 >
-                  {item.status}
+                  {item.status === "NORMAL" && "NORMAL"}
+                  {item.status === "BOTH_EXCEED" && "Temperature & Humidity EXCEED"}
+                  {item.status === "TEM_EXCEED" && "Temperature EXCEED"}
+                  {item.status === "HUM_EXCEED" && "Humidity EXCEED"}
                 </TableCell>
               </TableRow>
             );
