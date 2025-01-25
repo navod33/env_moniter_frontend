@@ -348,7 +348,22 @@ const Dashboard = () => {
         const response = await fetch('http://localhost:4000/api/sensor');
         if (response.ok) {
           const data = await response.json();
-          setSensorData(data.data || []); 
+          const sortedData = data.data || [];
+          
+          // Sort in descending order (most recent first)
+          const descendingSortedData = sortedData.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          );
+
+          // Take the last 10 entries
+          const last10Data = descendingSortedData.slice(0, 10);
+
+          // Sort the last 10 entries in ascending order
+          const ascendingSortedLast10Data = last10Data.sort(
+            (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+          );
+
+          setSensorData(ascendingSortedLast10Data);
         } else {
           console.error('Failed to fetch sensor data');
         }
@@ -357,9 +372,16 @@ const Dashboard = () => {
       }
     };
 
+    // Initial fetch
     fetchSensorData();
-  }, []);
-  
+
+    // Set interval to refetch data every 1 minute (60,000 ms)
+    const intervalId = setInterval(fetchSensorData, 60000);
+
+    // Cleanup the interval on component unmount
+    return () => clearInterval(intervalId);
+  }, []); 
+
 
   return (
     <Container maxWidth="xl" sx={{ my: 8, width: '95%', mx: 'auto' }}>
