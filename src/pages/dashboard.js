@@ -226,23 +226,32 @@ console.log('tableSensorData', tableSensorData)
 
 
   useEffect(() => {
-    const get = async () => {
+    const fetchSensorData = async () => {
       try {
         const response = await fetch('http://localhost:4000/api/sensor/filtered');
         if (response.ok) {
           const data = await response.json();
-          setTableSensorData(data.data || ''); 
-
+          setTableSensorData(data.data || '');
         } else {
-          console.error('Failed to fetch phone');
+          console.error('Failed to fetch sensor data');
         }
       } catch (error) {
-        console.error('Error fetching phone:', error);
+        console.error('Error fetching sensor data:', error);
       }
     };
   
-    get();
-  }, [30000]);
+    // Fetch data immediately on mount
+    fetchSensorData();
+  
+    // Set up interval to fetch data every 30 minutes
+    const interval = setInterval(() => {
+      fetchSensorData();
+    }, 30 * 60 * 1000); 
+  
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval);
+  }, []); 
+  
 
   
 
