@@ -143,8 +143,9 @@ const Dashboard = () => {
   const [sensorData, setSensorData] = useState([]); 
   const [page, setPage] = useState(0); 
   const [rowsPerPage, setRowsPerPage] = useState(20); 
+  const [tableSensorData, setTableSensorData] = useState([]);
 
-
+console.log('tableSensorData', tableSensorData)
     // Handle page change
     const handleChangePage = (event, newPage) => {
       setPage(newPage);
@@ -157,7 +158,7 @@ const Dashboard = () => {
     };
   
     // Paginated data
-    const paginatedData = sensorData.slice(
+    const paginatedData = tableSensorData.slice(
       page * rowsPerPage,
       page * rowsPerPage + rowsPerPage
     );
@@ -224,6 +225,25 @@ const Dashboard = () => {
   }, []);
 
 
+  useEffect(() => {
+    const get = async () => {
+      try {
+        const response = await fetch('http://localhost:4000/api/sensor/filtered');
+        if (response.ok) {
+          const data = await response.json();
+          setTableSensorData(data.data || ''); 
+
+        } else {
+          console.error('Failed to fetch phone');
+        }
+      } catch (error) {
+        console.error('Error fetching phone:', error);
+      }
+    };
+  
+    get();
+  }, [30000]);
+
   
 
   const handleSave = async () => {
@@ -277,8 +297,8 @@ const Dashboard = () => {
     }
   };
 
-  const MAX_DATA_POINTS = 10; // Keep only the last 10 data points
-  const [lastUpdateTime, setLastUpdateTime] = useState(null); // Track the last chart update time
+  const MAX_DATA_POINTS = 10; 
+  const [lastUpdateTime, setLastUpdateTime] = useState(null); 
 
   useEffect(() => {
     if (sensorData && sensorData.temperature && sensorData.humidity) {
@@ -514,7 +534,7 @@ const Dashboard = () => {
         <TablePagination
         rowsPerPageOptions={[5, 10, 15]} // Options for rows per page
         component="div"
-        count={sensorData.length} // Total number of rows
+        count={tableSensorData.length} // Total number of rows
         rowsPerPage={rowsPerPage} // Rows per page
         page={page} // Current page
         onPageChange={handleChangePage} // Page change handler
