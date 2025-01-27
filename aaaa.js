@@ -149,69 +149,6 @@ const Dashboard = () => {
 
   
   const MAX_DATA_POINTS = 10; 
-  const [lastUpdateTime, setLastUpdateTime] = useState(null); 
-
-  useEffect(() => {
-    if (sensorData && sensorData.temperature && sensorData.humidity) {
-      const now = new Date();
-
-      // Check if 1 minute has passed since the last update
-      if (!lastUpdateTime || now - lastUpdateTime >= 60000) {
-        setLastUpdateTime(now); // Update the last update time
-
-        setHumidityChartData((prevData) => ({
-          ...prevData,
-          labels: [...prevData.labels, now.toLocaleTimeString()].slice(-MAX_DATA_POINTS),
-          datasets: prevData.datasets.map((dataset) => ({
-            ...dataset,
-            data: [...dataset.data, sensorData.humidity].slice(-MAX_DATA_POINTS),
-          })),
-        }));
-
-        setTemperatureChartData((prevData) => ({
-          ...prevData,
-          labels: [...prevData.labels, now.toLocaleTimeString()].slice(-MAX_DATA_POINTS),
-          datasets: prevData.datasets.map((dataset) => ({
-            ...dataset,
-            data: [...dataset.data, sensorData.temperature].slice(-MAX_DATA_POINTS),
-          })),
-        }));
-
-        setTempHumidityChartData((prevData) => ({
-          ...prevData,
-          labels: [...prevData.labels, now.toLocaleTimeString()].slice(-MAX_DATA_POINTS),
-          datasets: prevData.datasets.map((dataset, index) => ({
-            ...dataset,
-            data: index === 0
-              ? [...dataset.data, sensorData.temperature].slice(-MAX_DATA_POINTS)
-              : [...dataset.data, sensorData.humidity].slice(-MAX_DATA_POINTS),
-          })),
-        }));
-      }
-    }
-  }, [sensorData, lastUpdateTime]);
-
-  useEffect(() => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${protocol}//localhost:4000`);
-
-    ws.onopen = () => console.log('[WS] Connected');
-    ws.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data);
-        if (msg.type === 'update') {
-          setLiveData(msg.data);
-        }
-      } catch (error) {
-        console.error('[WS] Error parsing message:', error);
-      }
-    };
-    ws.onclose = () => console.log('[WS] Disconnected');
-    ws.onerror = (error) => console.error('[WS] Error:', error);
-
-    return () => ws.close();
-  }, []);
-
 
   useEffect(() => {
     const fetchSensorData = async () => {
@@ -260,9 +197,7 @@ const Dashboard = () => {
         {/* Humidity Chart */}
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 400 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Current Humidity : {liveData.humidity} %
-            </Typography>
+      
             <Line data={humidityChartData} options={humidityOptions} />
           </Paper>
         </Grid>
@@ -270,19 +205,13 @@ const Dashboard = () => {
         {/* Temperature Chart */}
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 400}}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Current Temperature : {liveData.temperature} °C
-            </Typography>
+   
             <Line data={temperatureChartData} options={temperatureOptions} />
           </Paper>
         </Grid>
 
-        {/* Temperature vs Humidity */}
         <Grid item xs={12}>
           <Paper sx={{ p: 10, display: 'flex', flexDirection: 'column', height: 500, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Temperature vs Humidity
-            </Typography>
             <Line data={tempHumidityChartData} options={temperatureHumidityOptions} />
           </Paper>
         </Grid>

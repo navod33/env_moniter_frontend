@@ -307,47 +307,57 @@ console.log('tableSensorData', tableSensorData)
   };
 
   const MAX_DATA_POINTS = 10; 
-  const [lastUpdateTime, setLastUpdateTime] = useState(null); 
+
 
   useEffect(() => {
-    if (sensorData && sensorData.temperature && sensorData.humidity) {
-      const now = new Date();
-
-      // Check if 1 minute has passed since the last update
-      if (!lastUpdateTime || now - lastUpdateTime >= 60000) {
-        setLastUpdateTime(now); // Update the last update time
-
-        setHumidityChartData((prevData) => ({
-          ...prevData,
-          labels: [...prevData.labels, now.toLocaleTimeString()].slice(-MAX_DATA_POINTS),
-          datasets: prevData.datasets.map((dataset) => ({
-            ...dataset,
-            data: [...dataset.data, sensorData.humidity].slice(-MAX_DATA_POINTS),
-          })),
-        }));
-
-        setTemperatureChartData((prevData) => ({
-          ...prevData,
-          labels: [...prevData.labels, now.toLocaleTimeString()].slice(-MAX_DATA_POINTS),
-          datasets: prevData.datasets.map((dataset) => ({
-            ...dataset,
-            data: [...dataset.data, sensorData.temperature].slice(-MAX_DATA_POINTS),
-          })),
-        }));
-
-        setTempHumidityChartData((prevData) => ({
-          ...prevData,
-          labels: [...prevData.labels, now.toLocaleTimeString()].slice(-MAX_DATA_POINTS),
-          datasets: prevData.datasets.map((dataset, index) => ({
-            ...dataset,
-            data: index === 0
-              ? [...dataset.data, sensorData.temperature].slice(-MAX_DATA_POINTS)
-              : [...dataset.data, sensorData.humidity].slice(-MAX_DATA_POINTS),
-          })),
-        }));
-      }
+    if (sensorData.length > 0) {
+      // Extract labels (timestamps) and data (temperature and humidity)
+      const labels = sensorData.map((item) => new Date(item.createdAt).toLocaleTimeString());
+      const temperatures = sensorData.map((item) => item.temperature);
+      const humidities = sensorData.map((item) => item.humidity);
+  
+      // Update Humidity Chart
+      setHumidityChartData((prev) => ({
+        ...prev,
+        labels,
+        datasets: [
+          {
+            ...prev.datasets[0],
+            data: humidities,
+          },
+        ],
+      }));
+  
+      // Update Temperature Chart
+      setTemperatureChartData((prev) => ({
+        ...prev,
+        labels,
+        datasets: [
+          {
+            ...prev.datasets[0],
+            data: temperatures,
+          },
+        ],
+      }));
+  
+      // Update Temperature vs Humidity Chart
+      setTempHumidityChartData((prev) => ({
+        ...prev,
+        labels,
+        datasets: [
+          {
+            ...prev.datasets[0],
+            data: temperatures,
+          },
+          {
+            ...prev.datasets[1],
+            data: humidities,
+          },
+        ],
+      }));
     }
-  }, [sensorData, lastUpdateTime]);
+  }, [sensorData]); // Run this effect whenever sensorData changes
+  
 
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
